@@ -1,9 +1,8 @@
 ﻿using App.Services.Products;
 using App.Services.Products.Create;
 using App.Services.Products.Update;
-using Microsoft.AspNetCore.Http;
+using App.Services.Products.UpdateStock;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 
 namespace App.API.Controllers
 {

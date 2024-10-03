@@ -3,6 +3,7 @@ using App.Repositories.Products;
 using App.Services.ExceptionHandlers;
 using App.Services.Products.Create;
 using App.Services.Products.Update;
+using App.Services.Products.UpdateStock;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
@@ -72,19 +73,23 @@ namespace App.Services.Products
         {
             //throw new CriticalException("kritik seviye bir hata meydana geldi");
 
-            var anyProduct = await productRepository.Where(x => x.Name == request.Name).AnyAsync();
+            bool isProductNameExist = await productRepository.Where(x => x.Name == request.Name).AnyAsync();
 
-            if(anyProduct)
+            if(isProductNameExist)
             {
                 return ServiceResult<CreateProductResponse>.Fail("Product already exists", HttpStatusCode.BadRequest);
             }
 
-            var product = new Product()
-            {
-                Name = request.Name,
-                Price = request.Price,
-                Stock = request.Stock
-            };
+            #region manuel mapping
+            //var product = new Product()
+            //{
+            //    Name = request.Name,
+            //    Price = request.Price,
+            //    Stock = request.Stock
+            //};
+            #endregion
+
+            var product = mapper.Map<Product>(request);
 
             await productRepository.AddAsync(product);
             await unitOfWork.SaveChangesAsync();
@@ -101,9 +106,22 @@ namespace App.Services.Products
                 return ServiceResult.Fail("Product not found", HttpStatusCode.NotFound);
             }
 
-            product.Name = request.Name;
-            product.Price = request.Price;
-            product.Stock = request.Stock;
+            bool isProductNameExist = await productRepository.Where(x => x.Name == request.Name && x.Id != product.Id).AnyAsync();
+
+            if(isProductNameExist)
+            {
+                return ServiceResult.Fail("Product already exists", HttpStatusCode.BadRequest);
+            }
+
+            //product.Name = request.Name;
+            //product.Price = request.Price;
+            //product.Stock = request.Stock;
+
+            // elimde product nesnesi var, yeniden oluşturmuyorum, bu yüzden Map methoduna generic sınıf vermedim.
+            // diğer örneklerde yeniden nesne oluşturulduğu için mapper.Map<Product>(request) şeklinde kullanıyordum.
+            // yani bu kod var olan nesneme özellikleri assign ediyor, yukarıdaki satırların yaptığını yapıyor
+            // ekstradan request'ten gelen product name'i küçük harflere dönüştürüyor (mapper'da ayarlanan şekilde)
+            product = mapper.Map(request, product);
 
             productRepository.Update(product);
             await unitOfWork.SaveChangesAsync();
