@@ -99,14 +99,14 @@ namespace App.Services.Products
 
         public async Task<ServiceResult> UpdateAsync(int id, UpdateProductRequest request)
         {
-            var product = await productRepository.GetByIdAsync(id);
+            //var product = await productRepository.GetByIdAsync(id);
 
-            if(product is null)
-            {
-                return ServiceResult.Fail("Product not found", HttpStatusCode.NotFound);
-            }
+            //if(product is null)
+            //{
+            //    return ServiceResult.Fail("Product not found", HttpStatusCode.NotFound);
+            //}
 
-            bool isProductNameExist = await productRepository.Where(x => x.Name == request.Name && x.Id != product.Id).AnyAsync();
+            bool isProductNameExist = await productRepository.Where(x => x.Name == request.Name && x.Id != id /*product.Id*/).AnyAsync();
 
             if(isProductNameExist)
             {
@@ -121,7 +121,12 @@ namespace App.Services.Products
             // diğer örneklerde yeniden nesne oluşturulduğu için mapper.Map<Product>(request) şeklinde kullanıyordum.
             // yani bu kod var olan nesneme özellikleri assign ediyor, yukarıdaki satırların yaptığını yapıyor
             // ekstradan request'ten gelen product name'i küçük harflere dönüştürüyor (mapper'da ayarlanan şekilde)
-            product = mapper.Map(request, product);
+            
+            //product = mapper.Map(request, product);
+            // artık filter kullanıyorum, product getbyid methodunu kullanmıyorum.
+            var product = mapper.Map<Product>(request);
+            // Id assign etmezsek update yapmak yerine yeni kayıt ekliyor!
+            product.Id = id;
 
             productRepository.Update(product);
             await unitOfWork.SaveChangesAsync();
@@ -149,12 +154,13 @@ namespace App.Services.Products
         {
             var product = await productRepository.GetByIdAsync(id);
 
-            if (product is null)
-            {
-                return ServiceResult.Fail("Product not found", HttpStatusCode.NotFound);
-            }
+            //if (product is null)
+            //{
+            //    return ServiceResult.Fail("Product not found", HttpStatusCode.NotFound);
+            //}
 
-            productRepository.Delete(product);
+            // filterdan geçtiğine göre null olamaz
+            productRepository.Delete(product!);
             await unitOfWork.SaveChangesAsync();
 
             return ServiceResult.Success(HttpStatusCode.NoContent);

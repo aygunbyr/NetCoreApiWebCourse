@@ -71,12 +71,12 @@ namespace App.Services.Categories
         }
         public async Task<ServiceResult> UpdateAsync(int id, UpdateCategoryRequest request) 
         {
-            var category = await categoryRepository.GetByIdAsync(id);
+            //var category = await categoryRepository.GetByIdAsync(id);
 
-            if(category is null)
-            {
-                return ServiceResult.Fail("Category not found", HttpStatusCode.NotFound);
-            }
+            //if(category is null)
+            //{
+            //    return ServiceResult.Fail("Category not found", HttpStatusCode.NotFound);
+            //}
 
             var existingCategory = await categoryRepository.Where(x => x.Name == request.Name).AnyAsync();
             if (existingCategory)
@@ -85,7 +85,9 @@ namespace App.Services.Categories
             }
 
             // Update ederken tüm propertyleri tek tek atama yapmakla aynı, mapper bizim yerimize yapıyor.
-            category = mapper.Map(request, category);
+            //category = mapper.Map(request, category);
+            var category = mapper.Map<Category>(request);
+            category.Id = id;
 
             categoryRepository.Update(category);
             await unitOfWork.SaveChangesAsync();
@@ -96,10 +98,10 @@ namespace App.Services.Categories
         {
             var category = await categoryRepository.GetByIdAsync(id);
 
-            if(category is null)
-            {
-                return ServiceResult.Fail("Category not found", HttpStatusCode.NotFound);
-            }
+            //if(category is null)
+            //{
+            //    return ServiceResult.Fail("Category not found", HttpStatusCode.NotFound);
+            //}
 
             categoryRepository.Delete(category);
             await unitOfWork.SaveChangesAsync();
